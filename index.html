@@ -188,6 +188,98 @@
       background: rgba(255, 255, 255, 0.04);
     }
 
+    /* ——— Step transitions ——— */
+    .step {
+      max-width: 420px;
+      margin: 0 auto 18px;
+    }
+
+    .step.hidden {
+      display: none;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .step.entering {
+      animation: fadeUp 0.38s ease forwards;
+    }
+
+    /* ——— Step 2 stacked fields ——— */
+    .form-stack {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: border-color 0.35s;
+    }
+
+    .form-stack:focus-within {
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+
+    .field-row {
+      display: flex;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .field-row .field-input:first-child {
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .field-input {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      color: #fff;
+      padding: 14px 18px;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 300;
+      letter-spacing: 0.06em;
+      outline: none;
+    }
+
+    .field-input:last-child {
+      border-bottom: none;
+    }
+
+    .field-row .field-input {
+      border-bottom: none;
+    }
+
+    .field-input::placeholder {
+      color: rgba(255, 255, 255, 0.18);
+    }
+
+    .complete-btn {
+      display: block;
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.45);
+      padding: 14px 22px;
+      font-family: 'Inter', sans-serif;
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.38em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.3s, background 0.3s;
+    }
+
+    .complete-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .complete-btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
     /* ——— Success message ——— */
     .success-msg {
       height: 20px;
@@ -229,17 +321,32 @@
 
     <div class="rule"><span>Coming Soon</span></div>
 
-    <form class="form" id="emailForm" novalidate>
-      <input
-        class="email-input"
-        type="email"
-        id="emailInput"
-        placeholder="enter your email"
-        autocomplete="email"
-        required
-      >
-      <button class="submit-btn" id="submitBtn" type="submit">Notify Me</button>
-    </form>
+    <!-- Step 1: Email -->
+    <div class="step" id="step1">
+      <div class="form">
+        <input
+          class="email-input"
+          type="email"
+          id="emailInput"
+          placeholder="enter your email"
+          autocomplete="email"
+        >
+        <button class="submit-btn" id="nextBtn" type="button">Notify Me</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Details -->
+    <div class="step hidden" id="step2">
+      <div class="form-stack">
+        <div class="field-row">
+          <input class="field-input" type="text" id="firstNameInput" placeholder="first name" autocomplete="given-name">
+          <input class="field-input" type="text" id="lastNameInput"  placeholder="last name"  autocomplete="family-name">
+        </div>
+        <input class="field-input" type="tel"  id="phoneInput"   placeholder="phone number" autocomplete="tel">
+        <input class="field-input" type="text" id="addressInput" placeholder="address"      autocomplete="street-address">
+        <button class="complete-btn" id="completeBtn" type="button">Complete Signup</button>
+      </div>
+    </div>
 
     <p class="success-msg" id="successMsg">You're on the list.</p>
 
@@ -319,33 +426,56 @@
     —————————————————————————————————————— */
     const SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
 
-    const form       = document.getElementById('emailForm');
-    const input      = document.getElementById('emailInput');
-    const submitBtn  = document.getElementById('submitBtn');
-    const successMsg = document.getElementById('successMsg');
+    const step1        = document.getElementById('step1');
+    const step2        = document.getElementById('step2');
+    const emailInput   = document.getElementById('emailInput');
+    const nextBtn      = document.getElementById('nextBtn');
+    const firstNameInput = document.getElementById('firstNameInput');
+    const lastNameInput  = document.getElementById('lastNameInput');
+    const phoneInput     = document.getElementById('phoneInput');
+    const addressInput   = document.getElementById('addressInput');
+    const completeBtn  = document.getElementById('completeBtn');
+    const successMsg   = document.getElementById('successMsg');
 
-    form.addEventListener('submit', e => {
-      e.preventDefault();
+    /* ── Step 1: validate email, reveal details form ── */
+    nextBtn.addEventListener('click', () => {
+      const email = emailInput.value.trim();
+      const valid = email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      if (!valid) {
+        emailInput.focus();
+        emailInput.style.color = 'rgba(255,255,255,0.5)';
+        setTimeout(() => emailInput.style.color = '#fff', 600);
+        return;
+      }
+      step1.classList.add('hidden');
+      step2.classList.remove('hidden');
+      step2.classList.add('entering');
+      firstNameInput.focus();
+    });
 
-      const email = input.value.trim();
-      if (!email) return;
+    /* Allow Enter key on email field to advance */
+    emailInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') nextBtn.click();
+    });
 
-      /* Optimistic UI — disable button while sending */
-      submitBtn.disabled = true;
-      submitBtn.textContent = '...';
+    /* ── Step 2: submit all fields to Google Sheets ── */
+    completeBtn.addEventListener('click', () => {
+      completeBtn.disabled = true;
+      completeBtn.textContent = '...';
 
       const data = new FormData();
-      data.append('email', email);
+      data.append('email',     emailInput.value.trim());
+      data.append('firstName', firstNameInput.value.trim());
+      data.append('lastName',  lastNameInput.value.trim());
+      data.append('phone',     phoneInput.value.trim());
+      data.append('address',   addressInput.value.trim());
 
-      /* mode: no-cors is required for Apps Script — response will be opaque
-         but the data still reaches your Sheet successfully */
+      /* mode: no-cors required for Apps Script cross-origin requests */
       fetch(SCRIPT_URL, { method: 'POST', body: data, mode: 'no-cors' })
         .finally(() => {
-          input.value = '';
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'Notify Me';
+          step2.classList.add('hidden');
           successMsg.classList.add('visible');
-          setTimeout(() => successMsg.classList.remove('visible'), 5000);
+          setTimeout(() => successMsg.classList.remove('visible'), 6000);
         });
     });
   </script>

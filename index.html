@@ -344,6 +344,11 @@
         </div>
         <input class="field-input" type="tel"  id="phoneInput"   placeholder="phone number" autocomplete="tel">
         <input class="field-input" type="text" id="addressInput" placeholder="address"      autocomplete="street-address">
+        <div class="field-row">
+          <input class="field-input" type="text" id="cityInput"    placeholder="city"    autocomplete="address-level2">
+          <input class="field-input" type="text" id="stateInput"   placeholder="state"   autocomplete="address-level1">
+        </div>
+        <input class="field-input" type="text" id="countryInput" placeholder="country" autocomplete="country-name">
         <button class="complete-btn" id="completeBtn" type="button">Complete Signup</button>
       </div>
     </div>
@@ -434,7 +439,10 @@
     const lastNameInput  = document.getElementById('lastNameInput');
     const phoneInput     = document.getElementById('phoneInput');
     const addressInput   = document.getElementById('addressInput');
-    const completeBtn  = document.getElementById('completeBtn');
+    const cityInput      = document.getElementById('cityInput');
+    const stateInput     = document.getElementById('stateInput');
+    const countryInput   = document.getElementById('countryInput');
+    const completeBtn    = document.getElementById('completeBtn');
     const successMsg   = document.getElementById('successMsg');
 
     /* ── Step 1: validate email, reveal details form ── */
@@ -469,6 +477,9 @@
       data.append('lastName',  lastNameInput.value.trim());
       data.append('phone',     phoneInput.value.trim());
       data.append('address',   addressInput.value.trim());
+      data.append('city',      cityInput.value.trim());
+      data.append('state',     stateInput.value.trim());
+      data.append('country',   countryInput.value.trim());
 
       /* mode: no-cors required for Apps Script cross-origin requests */
       fetch(SCRIPT_URL, { method: 'POST', body: data, mode: 'no-cors' })

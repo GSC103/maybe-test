@@ -238,7 +238,7 @@
         autocomplete="email"
         required
       >
-      <button class="submit-btn" type="submit">Notify Me</button>
+      <button class="submit-btn" id="submitBtn" type="submit">Notify Me</button>
     </form>
 
     <p class="success-msg" id="successMsg">You're on the list.</p>
@@ -314,10 +314,14 @@
     draw();
 
     /* ——————————————————————————————————————
-       Email form
+       Email form → Google Sheets
+       Paste your Apps Script deployment URL below.
     —————————————————————————————————————— */
+    const SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
+
     const form       = document.getElementById('emailForm');
     const input      = document.getElementById('emailInput');
+    const submitBtn  = document.getElementById('submitBtn');
     const successMsg = document.getElementById('successMsg');
 
     form.addEventListener('submit', e => {
@@ -326,19 +330,23 @@
       const email = input.value.trim();
       if (!email) return;
 
-      /*
-        TODO: wire up to your email service here.
-        e.g. Mailchimp, ConvertKit, Klaviyo, or your own backend.
-        For now we just log and show confirmation.
-      */
-      console.log('New signup:', email);
+      /* Optimistic UI — disable button while sending */
+      submitBtn.disabled = true;
+      submitBtn.textContent = '...';
 
-      input.value = '';
-      successMsg.classList.add('visible');
+      const data = new FormData();
+      data.append('email', email);
 
-      setTimeout(() => {
-        successMsg.classList.remove('visible');
-      }, 5000);
+      /* mode: no-cors is required for Apps Script — response will be opaque
+         but the data still reaches your Sheet successfully */
+      fetch(SCRIPT_URL, { method: 'POST', body: data, mode: 'no-cors' })
+        .finally(() => {
+          input.value = '';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Notify Me';
+          successMsg.classList.add('visible');
+          setTimeout(() => successMsg.classList.remove('visible'), 5000);
+        });
     });
   </script>
 
